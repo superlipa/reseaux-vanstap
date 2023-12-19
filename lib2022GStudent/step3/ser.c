@@ -65,7 +65,7 @@ struct VehiculeFJ UnRecord;
         die("ReceiveDatagram") ;
     else
         fprintf(stderr,"bytes recus:%d:\n",rc) ;
- 
+        printf("recu de ip:%s port:%d\n",inet_ntoa(sor.sin_addr),ntohs(sor.sin_port));
         printf("Type recu %d\n", UneRequete.Type) ;
  switch(UneRequete.Type)
  {
