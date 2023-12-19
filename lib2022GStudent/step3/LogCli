@@ -1,0 +1,4 @@
+port 1400 
+CreateSockets 3
+Envoi de 176 bytes
+ici test pour msg
