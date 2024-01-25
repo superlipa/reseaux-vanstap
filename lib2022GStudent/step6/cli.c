@@ -128,6 +128,7 @@ do
             UneRequete.Quantite = quantite;
             // Assigner le nom du client
             strcpy(UneRequete.NomClient, nom);
+	    time(&UneRequete.Date);
 
    }
 
