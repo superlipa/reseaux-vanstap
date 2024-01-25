@@ -112,4 +112,29 @@ struct FactureFJ nouvelleFacture;
 
    return nouvelleFacture.NumeroFacturation;
 }
+int test doublonserv(char *FileFacture, time_t* Date, char* NomClient, int *NumeroFacture)
+{
+    FILE* fd;
+    char temps[30], temps1[30];
+    if ((fd = (fopen(FileFacture, "rb"))) == NULL)
+    {
+        printf("Erreur ouverture fichier dans la fonction RechercheMS");
+        return-1;
+    }
+    struct FactureMS *Facture = (struct FactureMS*) malloc(sizeof(struct FactureMS));
+    while(fread(Facture, sizeof(struct FactureMS), 1, fd) && (*Date) != Facture->DateFacturation);
+    while(fread(Facture, sizeof(struct FactureMS), 1, fd) && (*Date) == Facture->DateFacturation && (strcmp(NomClient, Facture->Acheteur)));
+    fclose(fd);
+    strftime(temps,sizeof(temps), "%Y-%m-%d %H:%M",localtime(&Facture->DateFacturation));
+    strftime(temps1,sizeof(temps), "%Y-%m-%d %H:%M",localtime(Date));
+    if((strcmp(temps1, temps)) == 0 && (strcmp(NomClient, Facture->Acheteur)) == 0)
+    {
+        *NumeroFacture = Facture->NumeroFacturation;
+        *Date = Facture->DateFacturation;
+        free(Facture);
+        return 1;
+    }
+    free(Facture);
+    return 0;
+}
 
