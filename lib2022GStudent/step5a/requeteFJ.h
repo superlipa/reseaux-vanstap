@@ -4,7 +4,8 @@ enum TypeRequete {
  Livraison= 3 ,
  OK = 4,
  Fail = 5, 
- Reponse =6
+ Reponse =6,
+Recherche = 7
  } ;
 struct RequeteFJ
 {
