@@ -11,6 +11,13 @@
 #include "../udplib/udplib.h"
 #include "requeteFJ.h"
 #include "LibSerFJ.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
+#include <errno.h>
+#include <signal.h>
 
 
 void die(char *s)
@@ -19,6 +26,9 @@ void die(char *s)
     exit(1);
 }
 
+void handlerSIGINT(int signal);
+void handlerSIGSTP(int signal);
+
 int main(int argc,char *argv[])
 {
  int rc ;
@@ -26,7 +36,28 @@ int main(int argc,char *argv[])
  struct sockaddr_in sthis ; /* this ce programme */
  struct sockaddr_in sos ; /* s = serveur */
  struct sockaddr_in sor ; /* r = remote */
- 
+  //armement signal
+  struct sigaction actionSignal, actionSignal1;
+  sigfillset(&actionSignal.sa_mask);
+  actionSignal.sa_flags = 0;
+  actionSignal.sa_handler = handlerSIGINT;
+
+  sigfillset(&actionSignal1.sa_mask);
+  actionSignal1.sa_flags = SA_RESTART;
+  actionSignal1.sa_handler = handlerSIGSTP;
+
+  if ((sigaction(SIGINT, &actionSignal, NULL) == -1))
+  {
+    perror("Erreur armement signal\n");
+    exit(1);
+  }
+
+  if ((sigaction(SIGTSTP, &actionSignal1, NULL) == -1))
+  {
+    perror("Erreur armement signal\n");
+    exit(1);
+  }
+  
  u_long  IpSocket ;
  u_short PortSocket ;
  
@@ -57,19 +88,20 @@ int main(int argc,char *argv[])
 
 struct VehiculeFJ UnRecord;
 
- while(1)
+do
 {
     tm = sizeof(struct RequeteFJ) ;
     rc = ReceiveDatagram( Desc,&UneRequete ,tm, &sor ) ;
-    if ( rc == -1 )
+    if ( rc == -1 && errno != EINTR)
         die("ReceiveDatagram") ;
     else
         fprintf(stderr,"bytes recus:%d:\n",rc) ;
         printf("recu de ip:%s port:%d\n",inet_ntoa(sor.sin_addr),ntohs(sor.sin_port));
         printf("Type recu %d\n", UneRequete.Type) ;
- switch(UneRequete.Type)
+        UneRequete.Type = Reponse;
+ switch(UneRequete.TypeReponse)
  {
-    case Question:
+    case Recherche:
         if(RechercheFJ("VehiculesFJ",UneRequete.Reference,&UnRecord)==1)
             {
 
@@ -112,18 +144,30 @@ struct VehiculeFJ UnRecord;
             fprintf(stderr,"bytes envoyes:%d\n",rc ) ;
     }
     break;
-    case Livraison:
-    break;
-    case OK:
-    break;
-    case Fail:
-    case Reponse:
-    break;
+   
     default:
     break;
  }
 }
+while(1);
  /* attention l'enum peut être codé en short */
  /* reponse avec psos */
  close(Desc) ;
 }
+void handlerSIGINT(int signal)
+{
+  printf("\nReception du signal %d SIGINT\nFermeture propre\n", signal);
+  close(Desc) ;
+  close(fdDup) ;
+  fclose(fichierPTR);
+  exit(0);
+}
+
+void handlerSIGSTP(int signal)
+{
+  printf("\nReception du signal %d SIGSTP\n DODO \n", signal);
+  printf("Demarrage du sleep \n") ;
+  sleep(30) ;
+  printf("Fin du sleep \n") ;
+}
+
