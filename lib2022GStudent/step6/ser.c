@@ -126,7 +126,7 @@ do
     case Achat:
     {
         int numfact=0;
-      if(testdoubloserv(FACTURE, &UneRequete.Date, UneRequete.NomClient, &UneRequete.NumeroFacture) == 1)
+      if(testdoublonserv("FactureFJ", &UneRequete.Date, UneRequete.NomClient, &UneRequete.NumeroFacture) == 1)
           {
             printf("Doublon Présent pour la facture\n");
           }
@@ -134,7 +134,7 @@ do
       {
         if (reservationFJ("VehiculesFJ",UneRequete.Reference,UneRequete.Quantite)==1)
         {
-          if(numfact=(facturationFJ("FactureFJ",UneRequete.NomClient,dateFacturation,UneRequete.Quantite,UneRequete.Reference))>0)
+          if(numfact=(facturationFJ("FactureFJ",UneRequete.NomClient,UneRequete.Date,UneRequete.Quantite,UneRequete.Reference))>0)
           {
             printf("maj facturation reussie\n");
           }

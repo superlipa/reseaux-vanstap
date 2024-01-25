@@ -118,12 +118,12 @@ int testdoublonserv(char *FileFacture, time_t* Date, char* NomClient, int *Numer
     char temps[30], temps1[30];
     if ((fd = (fopen(FileFacture, "rb"))) == NULL)
     {
-        printf("Erreur ouverture fichier dans la fonction RechercheMS");
+        printf("Erreur ouverture fichier dans la fonction RechercheFJ");
         return-1;
     }
-    struct FactureMS *Facture = (struct FactureMS*) malloc(sizeof(struct FactureMS));
-    while(fread(Facture, sizeof(struct FactureMS), 1, fd) && (*Date) != Facture->DateFacturation);
-    while(fread(Facture, sizeof(struct FactureMS), 1, fd) && (*Date) == Facture->DateFacturation && (strcmp(NomClient, Facture->Acheteur)));
+    struct FactureFJ *Facture = (struct FactureFJ*) malloc(sizeof(struct FactureFJ));
+    while(fread(Facture, sizeof(struct FactureFJ), 1, fd) && (*Date) != Facture->DateFacturation);
+    while(fread(Facture, sizeof(struct FactureFJ), 1, fd) && (*Date) == Facture->DateFacturation && (strcmp(NomClient, Facture->Acheteur)));
     fclose(fd);
     strftime(temps,sizeof(temps), "%Y-%m-%d %H:%M",localtime(&Facture->DateFacturation));
     strftime(temps1,sizeof(temps), "%Y-%m-%d %H:%M",localtime(Date));
