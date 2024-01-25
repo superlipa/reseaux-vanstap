@@ -9,6 +9,7 @@ enum TypeRequete {
 struct RequeteFJ
 {
  enum TypeRequete Type ;
+enum TypeRequete TypeReponse;
  int Numero ; // Contient le numéro de la requete
  int NumeroFacture ;
  time_t Date ; 
