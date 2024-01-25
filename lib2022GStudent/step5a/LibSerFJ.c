@@ -10,7 +10,7 @@ int RechercheFJ(char* NomFichier,int Reference ,struct VehiculeFJ *UnRecord)
 {
 struct VehiculeFJ   temp ;
  FILE *fp ;
-
+int compteur = 0;
  fp = fopen(NomFichier,"r") ; /* Si le fichier existe, on le cree sinon on ajoute */
  if ( fp == NULL )
     {
@@ -21,6 +21,7 @@ struct VehiculeFJ   temp ;
     fprintf(stderr,"Ouverture reussie \n") ;
  while (fread(&temp,sizeof(temp),1,fp) )
  {
+  compteur++;
   if ((temp.Reference)==Reference)
     {
         UnRecord->Reference =temp.Reference;
@@ -29,7 +30,7 @@ struct VehiculeFJ   temp ;
         UnRecord->puissance  =temp.puissance;
         UnRecord->Quantite =temp.Quantite;
         fclose(fp);
-        return 1;
+        return compteur + 1;
     }
  }
  fclose(fp);
@@ -81,6 +82,7 @@ int facturationFJ(char* NomFichier,char NomClient[40],time_t Date,int quantite,i
 {
    // Ouvrir le fichier en mode ajout (a+)
    FILE *file = fopen(NomFichier, "a+");
+ struct FactureFJ temp;
     
    if (file == NULL) {
       fprintf(stderr,"Echec Ouverture\n") ;
@@ -89,14 +91,12 @@ int facturationFJ(char* NomFichier,char NomClient[40],time_t Date,int quantite,i
    // Lire le dernier numéro de facturation existant dans le fichier
    int dernierNumeroFacturation = 0;
    fseek(file, -sizeof(struct FactureFJ), SEEK_END);
-   fread(&dernierNumeroFacturation, sizeof(int), 1, file);
-
+   fread(temp, sizeof(struct FactureFJ), 1, file);
+struct FactureFJ nouvelleFacture;
+ nouvelleFacture->NumeroFacturation = temp->NumeroFacturation + 1;
    // Incrémenter le numéro de facturation
-   int nouveauNumeroFacturation = dernierNumeroFacturation + 1;
            printf("constr facture\n");
    // Construire une nouvelle facture avec les données fournies
-   struct FactureFJ nouvelleFacture;
-   nouvelleFacture.NumeroFacturation = nouveauNumeroFacturation;
              printf("constr avant nom facture\n");
    strncpy(nouvelleFacture.Acheteur, NomClient, sizeof(nouvelleFacture.Acheteur) - 1);
    nouvelleFacture.Acheteur[sizeof(nouvelleFacture.Acheteur) - 1] = '\0';
