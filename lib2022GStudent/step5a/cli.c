@@ -105,7 +105,7 @@ do
   switch(choix)
   {
    case 1: 
-   UneRequete.Type = Question ; 
+   UneRequete.TypeReponse = Question ; 
    //strncpy(UneRequete.Message , "Avec une structure: Bonjour" , sizeof(UneRequete.Message)) ;
    int ref;
          printf("Quelle est la Référence du modèle recherché?\n");
@@ -114,7 +114,7 @@ do
    break ;
    case 2:
    {
-      UneRequete.Type = Achat ;
+      UneRequete.TypeReponse = Achat ;
       char nom[40];
       int ref,quantite;
       printf("Nom client:\n");
