@@ -91,9 +91,9 @@ int facturationFJ(char* NomFichier,char NomClient[40],time_t Date,int quantite,i
    // Lire le dernier numéro de facturation existant dans le fichier
    int dernierNumeroFacturation = 0;
    fseek(file, -sizeof(struct FactureFJ), SEEK_END);
-   fread(temp, sizeof(struct FactureFJ), 1, file);
+   fread(&temp, sizeof(struct FactureFJ), 1, file);
 struct FactureFJ nouvelleFacture;
- nouvelleFacture->NumeroFacturation = temp->NumeroFacturation + 1;
+ nouvelleFacture.NumeroFacturation = temp.NumeroFacturation + 1;
    // Incrémenter le numéro de facturation
            printf("constr facture\n");
    // Construire une nouvelle facture avec les données fournies

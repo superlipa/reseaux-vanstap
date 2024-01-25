@@ -311,7 +311,7 @@ int main()
             int ref;
             printf("Quelle est la Référence du modèle recherché?\n");
             scanf("%d",&ref);
-            if(RechercheFJ("VehiculesFJ",ref,&UnRecord)==1)
+            if(RechercheFJ("VehiculesFJ",ref,&UnRecord)>0)
             {
             AfficheEnteteVehiculeFJ () ;     
             AfficheVehiculeFJ ( &UnRecord) ;

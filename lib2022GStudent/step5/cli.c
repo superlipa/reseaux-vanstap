@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
  struct sockaddr_in sos ; /* s = serveur */
  struct sockaddr_in sor ; /* r = remote */
  struct RequeteFJ UneRequete ;
+ struct RequeteFJ RequeteReponse;
 
  memset(&sthis,0,sizeof(struct sockaddr_in)) ;
  memset(&sos,0,sizeof(struct sockaddr_in)) ; 
@@ -85,12 +86,12 @@ int main(int argc, char *argv[])
   sos.sin_addr.s_addr= IpServer ;
   sos.sin_port = htons(PortServer) ;
 
-compteur = 1; 
+int compteur = 1; 
 
 do
 {
-   memset(&UneRequete,0,sizeof(struct RequeteMS));
-   memset(&RequeteReponse,0,sizeof(struct RequeteMS));
+   memset(&UneRequete,0,sizeof(struct RequeteFJ));
+   memset(&RequeteReponse,0,sizeof(struct RequeteFJ));
    UneRequete.Type = Question;
    UneRequete.Numero = compteur; 
 
@@ -143,7 +144,7 @@ do
         alarm(5);
         if (rc == -1)
         {
-            rc = SendDatagram(Desc,&UneRequete,sizeof(struct RequeteMS) ,&sos ) ;
+            rc = SendDatagram(Desc,&UneRequete,sizeof(struct RequeteFJ) ,&sos ) ;
 
             if ( rc == -1 )
                 die("SendDatagram") ;
@@ -151,8 +152,8 @@ do
                 fprintf(stderr,"Envoi de %d bytes\n",rc ) ;
         }
      
-        tm = sizeof(struct RequeteMS) ;
-        memset(&RequeteReponse,0,sizeof(struct RequeteMS)) ;
+        tm = sizeof(struct RequeteFJ) ;
+        memset(&RequeteReponse,0,sizeof(struct RequeteFJ)) ;
      
         rc = ReceiveDatagram( Desc, &RequeteReponse,tm, &sor ) ;
         sigprocmask(SIG_SETMASK,&mask, &ancienMask);
@@ -185,8 +186,7 @@ do
         switch(RequeteReponse.TypeReponse)
         {
             case Recherche:
-                    fprintf(stdout, "Constructeur : %s \t Modele: %s \t Carrosserie: %s \t Quantité : %d\n", RequeteReponse.Constructeur, RequeteReponse.Modele, RequeteReponse.Carrosserie, RequeteReponse.Quantite);
-                    viderStdin();
+                    fprintf(stdout, "Constructeur : %s \t Modele: %s \t puissance: %d \t Quantité : %d\n", RequeteReponse.Constructeur, RequeteReponse.Modele, RequeteReponse.puissance, RequeteReponse.Quantite);
                     break;
 
             case Achat:
@@ -206,13 +206,10 @@ do
 
         }
     }
-        AfficheRequeteFJ(fichierPTR, UneRequete);
         sleep(5);
 }
-while(c!=3);
+while(choix!=3);
  close(Desc) ;
- close(fdDup) ;
- fclose(fichierPTR);
  return 0;
 }
 void handlerSIGALRM(int signal)

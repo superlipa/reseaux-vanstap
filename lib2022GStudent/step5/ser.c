@@ -29,10 +29,11 @@ void die(char *s)
 void handlerSIGINT(int signal);
 void handlerSIGSTP(int signal);
 
+ int Desc ;
+
 int main(int argc,char *argv[])
 {
  int rc ;
- int Desc ;
  struct sockaddr_in sthis ; /* this ce programme */
  struct sockaddr_in sos ; /* s = serveur */
  struct sockaddr_in sor ; /* r = remote */
@@ -102,7 +103,7 @@ do
  switch(UneRequete.TypeReponse)
  {
     case Recherche:
-        if(RechercheFJ("VehiculesFJ",UneRequete.Reference,&UnRecord)==1)
+        if(RechercheFJ("VehiculesFJ",UneRequete.Reference,&UnRecord)>0)
             {
 
             UneRequete.Quantite = UnRecord.Quantite; 
@@ -158,8 +159,6 @@ void handlerSIGINT(int signal)
 {
   printf("\nReception du signal %d SIGINT\nFermeture propre\n", signal);
   close(Desc) ;
-  close(fdDup) ;
-  fclose(fichierPTR);
   exit(0);
 }
 
