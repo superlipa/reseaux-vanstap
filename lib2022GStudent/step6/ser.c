@@ -126,15 +126,19 @@ do
     case Achat:
     {
         int numfact=0;
+      if(testdoubloserv(FACTURE, &UneRequete.Date, UneRequete.NomClient, &UneRequete.NumeroFacture) == 1)
+          {
+            printf("Doublon Présent pour la facture\n");
+          }
+      else
+      {
         if (reservationFJ("VehiculesFJ",UneRequete.Reference,UneRequete.Quantite)==1)
         {
-          time_t dateFacturation = time(NULL);
           if(numfact=(facturationFJ("FactureFJ",UneRequete.NomClient,dateFacturation,UneRequete.Quantite,UneRequete.Reference))>0)
           {
             printf("maj facturation reussie\n");
-
           }
-        }
+         }
             printf("fact:%d\n",numfact);
             UneRequete.NumeroFacture = numfact;
             UneRequete.Type = Reponse ; 
@@ -143,6 +147,7 @@ do
             die("SendDatagram:") ;
             else
             fprintf(stderr,"bytes envoyes:%d\n",rc ) ;
+        }
     }
     break;
    
