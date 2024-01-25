@@ -112,7 +112,7 @@ struct FactureFJ nouvelleFacture;
 
    return nouvelleFacture.NumeroFacturation;
 }
-int test doublonserv(char *FileFacture, time_t* Date, char* NomClient, int *NumeroFacture)
+int testdoublonserv(char *FileFacture, time_t* Date, char* NomClient, int *NumeroFacture)
 {
     FILE* fd;
     char temps[30], temps1[30];
