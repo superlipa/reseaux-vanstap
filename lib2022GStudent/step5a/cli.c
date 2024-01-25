@@ -10,6 +10,16 @@
 #include "../udplib/udplib.h"
 #include "requeteFJ.h"
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
+#include <errno.h>
+#include <signal.h>
+#include <time.h>
+
+void handlerSIGALRM(int signal);
 
 void die(char *s)
 {
@@ -23,7 +33,20 @@ int main(int argc, char *argv[])
  int rc ;
  int Desc ;
  int tm ; 
- 
+
+    struct sigaction actionAlarme;
+    sigfillset(&actionAlarme.sa_mask);
+    sigdelset(&actionAlarme.sa_mask, SIGALRM);
+    actionAlarme.sa_handler = handlerSIGALRM;
+    actionAlarme.sa_flags = 0;
+
+    if ((sigaction(SIGALRM, &actionAlarme, NULL) == -1))
+    {
+	    perror("Erreur armement signal\n");
+	    exit(1);
+    }
+    
+   
  u_long  IpSocket , IpServer;
  u_short PortSocket, PortServer ; 
  
@@ -62,10 +85,15 @@ int main(int argc, char *argv[])
   sos.sin_addr.s_addr= IpServer ;
   sos.sin_port = htons(PortServer) ;
 
- 
+compteur = 1; 
 
-while(1)
- {
+do
+{
+   memset(&UneRequete,0,sizeof(struct RequeteMS));
+   memset(&RequeteReponse,0,sizeof(struct RequeteMS));
+   UneRequete.Type = Question;
+   UneRequete.Numero = compteur; 
+
   printf("-------2023-----------\n") ;
   printf("1) Demander une reference\n") ;
   printf("2) acheter une voiture\n") ;
@@ -82,24 +110,7 @@ while(1)
    int ref;
          printf("Quelle est la Référence du modèle recherché?\n");
          scanf("%d",&ref);
-         UneRequete.Reference=ref;
-   rc = SendDatagram(Desc,&UneRequete,sizeof(struct RequeteFJ) ,&sos ) ;
-
-   if ( rc == -1 )
-      die("SendDatagram") ;
-   else
-      fprintf(stderr,"Envoi de %d bytes\n",rc ) ;
- 
-   memset(&UneRequete,0,sizeof(struct RequeteFJ)) ;
-   tm = sizeof(struct RequeteFJ) ;
- 
-   rc = ReceiveDatagram( Desc, &UneRequete,tm, &sor ) ;
-   if ( rc == -1 )
-      die("ReceiveDatagram") ;
-   else
-
-   fprintf(stderr,"ref:%d modele:%s quantite:%d puissance:%d constructeur:%s\n",UneRequete.Reference,UneRequete.Modele,UneRequete.Quantite,UneRequete.puissance,UneRequete.Constructeur) ;
-   
+         UneRequete.Reference=ref; 
    break ;
    case 2:
    {
@@ -116,26 +127,96 @@ while(1)
             UneRequete.Quantite = quantite;
             // Assigner le nom du client
             strcpy(UneRequete.NomClient, nom);
-      rc = SendDatagram(Desc,&UneRequete,sizeof(struct RequeteFJ) ,&sos ) ;
-       if ( rc == -1 )
-          die("SendDatagram") ;
-       else
-          fprintf(stderr,"Envoi de %d bytes\n",rc ) ;
-
-      memset(&UneRequete,0,sizeof(struct RequeteFJ)) ;
-      tm = sizeof(struct RequeteFJ) ;
-
-   rc = ReceiveDatagram( Desc, &UneRequete,tm, &sor ) ;
-   if ( rc == -1 )
-      die("ReceiveDatagram") ;
-   else
-   fprintf(stderr,"achat num facture : %d\n",UneRequete.NumeroFacture);
 
    }
 
    break;
-   case 3: exit(0) ; 
+   case 3:
+      exit(0) ; 
       close(Desc) ;
   }
+   sigset_t mask, ancienMask;
+   sigaddset(&mask,SIGALRM);
+   rc = -1;
+    do
+    {
+        alarm(5);
+        if (rc == -1)
+        {
+            rc = SendDatagram(Desc,&UneRequete,sizeof(struct RequeteMS) ,&sos ) ;
+
+            if ( rc == -1 )
+                die("SendDatagram") ;
+            else
+                fprintf(stderr,"Envoi de %d bytes\n",rc ) ;
+        }
+     
+        tm = sizeof(struct RequeteMS) ;
+        memset(&RequeteReponse,0,sizeof(struct RequeteMS)) ;
+     
+        rc = ReceiveDatagram( Desc, &RequeteReponse,tm, &sor ) ;
+        sigprocmask(SIG_SETMASK,&mask, &ancienMask);
+        if ( rc == -1 && errno != EINTR)
+            die("ReceiveDatagram") ;
+
+        else if (errno == EINTR)
+        {
+            perror("Interruption Systeme après SIGALRM pas de message\n");
+        }
+        else
+        {
+            fprintf(stderr,"bytes recus:%d\n",rc) ;
+            if (RequeteReponse.Numero != compteur)
+            {
+                printf("Doublon %d\n", RequeteReponse.Numero);
+            }           
+        }
+        sigprocmask(SIG_SETMASK,&ancienMask, NULL);
+        errno = 0;
+    }
+    while(RequeteReponse.Numero != compteur);
+
+    alarm(0);
+    compteur ++;
+
+    if (RequeteReponse.Type == Reponse)
+    {
+
+        switch(RequeteReponse.TypeReponse)
+        {
+            case Recherche:
+                    fprintf(stdout, "Constructeur : %s \t Modele: %s \t Carrosserie: %s \t Quantité : %d\n", RequeteReponse.Constructeur, RequeteReponse.Modele, RequeteReponse.Carrosserie, RequeteReponse.Quantite);
+                    viderStdin();
+                    break;
+
+            case Achat:
+
+                    if (RequeteReponse.NumeroFacture > 0)
+                    {
+                        printf("Achat effectué, Facture %d\n", RequeteReponse.NumeroFacture);
+                    }
+                    else
+                    {
+                        printf("Achat Echoué\n");
+                    }
+                    break;
+
+            default:
+                    printf("Erreur Type Reponse\n");
+
+        }
+    }
+        AfficheRequeteFJ(fichierPTR, UneRequete);
+        sleep(5);
 }
+while(c!=3);
+ close(Desc) ;
+ close(fdDup) ;
+ fclose(fichierPTR);
+ return 0;
 }
+void handlerSIGALRM(int signal)
+{
+    printf("\nRéception du signal %d SIGALRM\n", signal);
+}
+
